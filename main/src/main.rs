@@ -1,3 +1,6 @@
+//adjusted this tutorial for windows
+//https://damienradtke.com/post/rusty-dynamic-loading/
+
 extern crate libloading;
 extern crate fs_extra;
 
