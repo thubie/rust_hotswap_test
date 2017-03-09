@@ -1,0 +1,9 @@
+[package]
+name = "app"
+version = "0.1.0"
+authors = ["thubi"]
+
+[dependencies]
+
+[lib]
+crate-type = ["dylib"]
