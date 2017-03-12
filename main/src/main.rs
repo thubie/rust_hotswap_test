@@ -42,27 +42,26 @@ fn main() {
     
     loop {
         std::thread::sleep(dur);
-        app = swap_module_on_windows(app, last_modified).unwrap();
+        let result = swap_module_on_windows(app, last_modified).unwrap();
+        app = result.0;
+        last_modified = result.1;
         println!("message: {}", app.get_message());
     }
 }
 
-fn swap_module_on_windows(mut app: Application, mut last_modified: SystemTime) -> Result<Application, fs_extra::error::Error> {
-    if let Ok(Ok(modified)) = std::fs::metadata(LIB_PATH).map(|m| m.modified()) {
-        if modified > last_modified {
-            drop(app);
-            
-            let options: CopyOptions = CopyOptions {
-                overwrite: true,
-                skip_exist: false,
-                buffer_size: 0
-            };
-            copy(LIB_PATH, LIB_TEMP_PATH, &options)?;
-            
-            app = Application(Library::new(LIB_TEMP_PATH)
-                .unwrap_or_else(|error| panic!("{}", error)));
-            last_modified = modified;
-        }
-    } 
-    Ok(app)
+fn swap_module_on_windows(mut app: Application, last_modified: SystemTime) -> Result<(Application, SystemTime), fs_extra::error::Error> {
+    let modified = std::fs::metadata(LIB_PATH)?.modified()?;
+
+    if modified > last_modified {
+        drop(app);
+        let options: CopyOptions = CopyOptions {
+            overwrite: true,
+            skip_exist: false,
+            buffer_size: 0
+        };
+
+        copy(LIB_PATH, LIB_TEMP_PATH, &options)?;
+        app = Application(Library::new(LIB_TEMP_PATH)?);
+    }
+    Ok((app, modified))
 }
